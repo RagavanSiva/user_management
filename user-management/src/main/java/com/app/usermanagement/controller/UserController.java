@@ -2,10 +2,16 @@ package com.app.usermanagement.controller;
 
 import com.app.usermanagement.exceptions.UserServiceException;
 import com.app.usermanagement.model.request.UserDetailsRequestModel;
+import com.app.usermanagement.model.response.AddressResponseDto;
 import com.app.usermanagement.model.response.ErrorMessages;
 import com.app.usermanagement.model.response.UserDetailsResponseModel;
+import com.app.usermanagement.service.AddressService;
 import com.app.usermanagement.service.UserService;
+import com.app.usermanagement.shared.dto.AddressDto;
 import com.app.usermanagement.shared.dto.UserDto;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.modelmapper.internal.bytebuddy.description.method.MethodDescription;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,31 +25,59 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    AddressService addressesService;
+
+    @Autowired
+    AddressService addressService;
     //save user
     @PostMapping
     public UserDetailsResponseModel saveUser(@RequestBody UserDetailsRequestModel userDetailsRequestModel) throws Exception{
 
         if (userDetailsRequestModel.getFirstName().isEmpty()) throw new Exception(ErrorMessages.MISSING_REQUIRED_FIELDS.getErrorMessage());
-        UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
-        UserDto userDto = new UserDto();
 
-        BeanUtils.copyProperties(userDetailsRequestModel,userDto);
-
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto userDto = modelMapper.map(userDetailsRequestModel, UserDto.class);
         UserDto createdUserDto = userService.saveUser(userDto);
-
-        BeanUtils.copyProperties(createdUserDto,userDetailsResponseModel);
-
+        UserDetailsResponseModel userDetailsResponseModel = modelMapper.map(createdUserDto, UserDetailsResponseModel.class);
         return userDetailsResponseModel;
     }
 
     //get user
     @GetMapping(path = "/{id}")
-    public UserDetailsResponseModel getAllUserByUserId(@PathVariable("id") String id){
-        UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
+    public UserDetailsResponseModel getUserByUserId(@PathVariable("id") String id){
+
         UserDto userDto = userService.getUserByUserId(id);
-        BeanUtils.copyProperties(userDto,userDetailsResponseModel);
+//        BeanUtils.copyProperties(userDto,userDetailsResponseModel);
+        ModelMapper modelMapper = new ModelMapper();
+        UserDetailsResponseModel userDetailsResponseModel = modelMapper.map(userDto, UserDetailsResponseModel.class);
 
         return userDetailsResponseModel;
+    }
+
+    //get address details of a particular user
+    @GetMapping(path = "/{id}/address")
+    public List<AddressResponseDto> getAllAddressByUserId(@PathVariable("id") String id){
+        List<AddressResponseDto> returnValue = new ArrayList<>();
+        List<AddressDto> addressDto = addressesService.getAddresses(id);
+        if(addressDto != null && !addressDto.isEmpty()) {
+            java.lang.reflect.Type listType = new TypeToken<List<AddressResponseDto>>() {
+            }.getType();
+            returnValue = new ModelMapper().map(addressDto, listType);
+        }
+
+        return returnValue;
+    }
+
+    @GetMapping(path = "/{id}/address/{addressId}")
+    public AddressResponseDto getUserAddress(@PathVariable("id") String id,@PathVariable("addressId") String addressId){
+        AddressDto returnValue = addressService.getAddress(addressId);
+        ModelMapper modelMapper = new ModelMapper();
+
+
+
+        return modelMapper.map(returnValue,AddressResponseDto.class);
     }
 
     @GetMapping
@@ -55,9 +89,11 @@ public class UserController {
        List<UserDto> userDtos = userService.getAllUserDetails(pageNumber,pageSize);
 
        for (UserDto user : userDtos){
-           UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
-           BeanUtils.copyProperties(user,userDetailsResponseModel);
-           userDetailsResponseModelList.add(userDetailsResponseModel);
+//           UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
+           ModelMapper modelMapper = new ModelMapper();
+
+//           BeanUtils.copyProperties(user,userDetailsResponseModel);
+           userDetailsResponseModelList.add(modelMapper.map(user, UserDetailsResponseModel.class));
        }
 
         return userDetailsResponseModelList;
@@ -65,11 +101,11 @@ public class UserController {
 
     @PutMapping("/{id}")
     public UserDetailsResponseModel updateUserDetails(@PathVariable("id") String id ,@RequestBody UserDetailsRequestModel userDetailsRequestModel){
-        UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
-        UserDto userDto = new UserDto();
-        BeanUtils.copyProperties(userDetailsRequestModel,userDto);
-        UserDto updatedUserDto = userService.updateUser(id,userDto);
-        BeanUtils.copyProperties(updatedUserDto,userDetailsResponseModel);
+
+
+//        BeanUtils.copyProperties(userDetailsRequestModel,userDto);
+        UserDto updatedUserDto = userService.updateUser(id,new ModelMapper().map(userDetailsRequestModel, UserDto.class));
+        UserDetailsResponseModel userDetailsResponseModel = new ModelMapper().map(updatedUserDto, UserDetailsResponseModel.class);
         return userDetailsResponseModel;
     }
 
