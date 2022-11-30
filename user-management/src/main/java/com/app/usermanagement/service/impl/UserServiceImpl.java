@@ -9,6 +9,9 @@ import com.app.usermanagement.shared.dto.UserDto;
 import com.app.usermanagement.shared.utils.Utils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -69,10 +72,19 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<UserDto> getAllUserDetails() {
-
-        List<UserEntity> userEntities = (List<UserEntity>) userRepository.findAll();
+    public List<UserDto> getAllUserDetails(int pageNumber, int pageSize) {
         List<UserDto> userDto = new ArrayList<>();
+        if (pageNumber> 0) pageNumber = pageNumber -1;
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Page<UserEntity> userEntities = userRepository.findAll(pageable);
+        long count = userRepository.count();
+        System.out.println("count"+ count);
+        List<UserEntity> pageableUserEntity = userEntities.getContent();
+        for (UserEntity userEntity: pageableUserEntity){
+            UserDto user = new UserDto();
+            BeanUtils.copyProperties(userEntity,user);
+            userDto.add(user);
+        }
         return userDto;
     }
 

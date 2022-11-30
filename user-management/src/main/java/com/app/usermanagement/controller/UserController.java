@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,8 +47,20 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDetailsResponseModel> getAllUsers(){
-        return null;
+    public List<UserDetailsResponseModel> getAllUsers(
+            @RequestParam(value = "pageNumber",defaultValue = "1") int pageNumber
+            , @RequestParam(value = "pageSize",defaultValue = "10") int pageSize){
+       List<UserDetailsResponseModel> userDetailsResponseModelList = new ArrayList<>();
+
+       List<UserDto> userDtos = userService.getAllUserDetails(pageNumber,pageSize);
+
+       for (UserDto user : userDtos){
+           UserDetailsResponseModel userDetailsResponseModel = new UserDetailsResponseModel();
+           BeanUtils.copyProperties(user,userDetailsResponseModel);
+           userDetailsResponseModelList.add(userDetailsResponseModel);
+       }
+
+        return userDetailsResponseModelList;
     }
 
     @PutMapping("/{id}")

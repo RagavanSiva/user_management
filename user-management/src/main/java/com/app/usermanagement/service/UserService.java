@@ -13,7 +13,7 @@ public interface UserService extends UserDetailsService {
     UserDto getUser(String email);
     UserDto getUserByUserId(String userId);
 
-    List<UserDto> getAllUserDetails();
+    List<UserDto> getAllUserDetails(int pageNumber, int pageSize);
 
     UserDto updateUser(String id, UserDto userDto);
 
