@@ -9,6 +9,8 @@ import com.app.usermanagement.service.AddressService;
 import com.app.usermanagement.service.UserService;
 import com.app.usermanagement.shared.dto.AddressDto;
 import com.app.usermanagement.shared.dto.UserDto;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.modelmapper.internal.bytebuddy.description.method.MethodDescription;
@@ -45,6 +47,9 @@ public class UserController {
     }
 
     //get user
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @GetMapping(path = "/{id}")
     public UserDetailsResponseModel getUserByUserId(@PathVariable("id") String id){
 
@@ -56,7 +61,11 @@ public class UserController {
         return userDetailsResponseModel;
     }
 
+
     //get address details of a particular user
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @GetMapping(path = "/{id}/address")
     public List<AddressResponseDto> getAllAddressByUserId(@PathVariable("id") String id){
         List<AddressResponseDto> returnValue = new ArrayList<>();
@@ -70,6 +79,9 @@ public class UserController {
         return returnValue;
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @GetMapping(path = "/{id}/address/{addressId}")
     public AddressResponseDto getUserAddress(@PathVariable("id") String id,@PathVariable("addressId") String addressId){
         AddressDto returnValue = addressService.getAddress(addressId);
@@ -80,6 +92,9 @@ public class UserController {
         return modelMapper.map(returnValue,AddressResponseDto.class);
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @GetMapping
     public List<UserDetailsResponseModel> getAllUsers(
             @RequestParam(value = "pageNumber",defaultValue = "1") int pageNumber
@@ -99,6 +114,9 @@ public class UserController {
         return userDetailsResponseModelList;
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @PutMapping("/{id}")
     public UserDetailsResponseModel updateUserDetails(@PathVariable("id") String id ,@RequestBody UserDetailsRequestModel userDetailsRequestModel){
 
@@ -109,6 +127,9 @@ public class UserController {
         return userDetailsResponseModel;
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization",value = "${userController.authorizationHeader.description}",paramType = "header")
+    })
     @DeleteMapping("/{id}")
     public String deleteUser(@PathVariable("id") String id){
         userService.deleteUser(id);
